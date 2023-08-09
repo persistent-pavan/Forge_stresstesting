@@ -25,12 +25,7 @@ jobs:
           tar -xzf apache-jmeter-5.5.tgz
           rm apache-jmeter-5.5.tgz
 
-      - name: Install JMeter Plugins Manager
-        run: |
-          wget https://jmeter-plugins.org/get/
-          unzip -o jmeter-plugins-manager-1.6.jar -d apache-jmeter-5.5/lib/ext/
-          rm jmeter-plugins-manager-1.6.jar
-
+     
       - name: Install JMeter plugins associated with thread groups
         run: apache-jmeter-5.5/bin/PluginsManagerCMD.sh install jpgc-casutg,jpgc-csh-tg,jpgc-ffw,jpgc-fifo,jpgc-function,jpgc-mt,jpgc-olap,jpgc-ordinatecontroller,jpgc-perfmon,jpgc-senseight,jpgc-synthesis
 
