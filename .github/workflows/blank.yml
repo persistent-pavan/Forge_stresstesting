@@ -18,7 +18,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'adopt'
-
+          
       - name: Install JMeter
         run: |
           wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.tgz
@@ -27,25 +27,19 @@ jobs:
 
       - name: Install JMeter Plugins Manager
         run: |
-          wget https://jmeter-plugins.org/files/packages/jpgc-cmd-2.2.zip
-          unzip -o jpgc-cmd-2.2.zip -d apache-jmeter-5.5/lib/cmdrunner/
-          rm jpgc-cmd-2.2.zip
-
-      - name: Install JMeter plugins associated with thread groups
-        run: |
           wget https://jmeter-plugins.org/get/
           unzip -o jmeter-plugins-manager-1.6.jar -d apache-jmeter-5.5/lib/ext/
-          java -jar apache-jmeter-5.5/lib/ext/jmeter-plugins-manager-1.6.jar --install-all-except jpgc-extras,jpgc-graphs-basic,jpgc-graphs-additional
+          rm jmeter-plugins-manager-1.6.jar
+
+      - name: Install JMeter plugins associated with thread groups
+        run: apache-jmeter-5.5/bin/PluginsManagerCMD.sh install jpgc-casutg,jpgc-csh-tg,jpgc-ffw,jpgc-fifo,jpgc-function,jpgc-mt,jpgc-olap,jpgc-ordinatecontroller,jpgc-perfmon,jpgc-senseight,jpgc-synthesis
 
       - name: Run JMeter scripts
-        run: |
-          apache-jmeter-5.5/bin/jmeter -n -t ForgeAPI_v4.jmx.jmx -l ${{ github.workspace }}/results.jtl
-          echo "JTL file path: ${{ github.workspace }}/results.jtl"
+        run: apache-jmeter-5.5/bin/jmeter -n -t ForgeAPI_v4.jmx -l results.jtl
 
       - name: Generate load test report
-        run: |
-          apache-jmeter-5.5/bin/jmeter -g ${{ github.workspace }}/results.jtl -o ${{ github.workspace }}/report
+        run: apache-jmeter-5.5/bin/jmeter -g ${{ github.workspace }}/results.jtl -o ${{ github.workspace }}/report
 
       - name: Print response times above 2 seconds and errors
         run: |
-          awk -F',' 'NR > 1 && \$2 > 2000 {print "Response Time: " \$2 " ms"}; NR > 1 && \$7 != "" {print "Error: " \$7}' ${{ github.workspace }}/results.jtl
+          awk -F',' '{if (\$2 > 2000 && NR > 1) {print "Response Time: " \$2 " ms"} else if (\$7 != "" && NR > 1) {print "Error: " \$7}}' ${{ github.workspace }}/results.jtl
