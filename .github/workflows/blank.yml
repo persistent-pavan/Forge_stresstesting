@@ -1,0 +1,50 @@
+name: Load Test Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  load_test_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+
+      - name: Install JMeter
+        run: |
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.tgz
+          tar -xzf apache-jmeter-5.5.tgz
+          rm apache-jmeter-5.5.tgz
+
+      - name: Install JMeter Plugins Manager
+        run: |
+          wget https://jmeter-plugins.org/files/packages/jpgc-cmd-2.2.zip
+          unzip -o jpgc-cmd-2.2.zip -d apache-jmeter-5.5/lib/cmdrunner/
+          rm jpgc-cmd-2.2.zip
+
+      - name: Install JMeter plugins associated with thread groups
+        run: |
+          wget https://jmeter-plugins.org/get/
+          unzip -o jmeter-plugins-manager-1.6.jar -d apache-jmeter-5.5/lib/ext/
+          java -jar apache-jmeter-5.5/lib/ext/jmeter-plugins-manager-1.6.jar --install-all-except jpgc-extras,jpgc-graphs-basic,jpgc-graphs-additional
+
+      - name: Run JMeter scripts
+        run: |
+          apache-jmeter-5.5/bin/jmeter -n -t ForgeAPI_v4.jmx.jmx -l ${{ github.workspace }}/results.jtl
+          echo "JTL file path: ${{ github.workspace }}/results.jtl"
+
+      - name: Generate load test report
+        run: |
+          apache-jmeter-5.5/bin/jmeter -g ${{ github.workspace }}/results.jtl -o ${{ github.workspace }}/report
+
+      - name: Print response times above 2 seconds and errors
+        run: |
+          awk -F',' 'NR > 1 && \$2 > 2000 {print "Response Time: " \$2 " ms"}; NR > 1 && \$7 != "" {print "Error: " \$7}' ${{ github.workspace }}/results.jtl
