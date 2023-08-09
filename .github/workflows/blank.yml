@@ -25,10 +25,6 @@ jobs:
           tar -xzf apache-jmeter-5.5.tgz
           rm apache-jmeter-5.5.tgz
 
-     
-      - name: Install JMeter plugins associated with thread groups
-        run: apache-jmeter-5.5/bin/PluginsManagerCMD.sh install jpgc-casutg,jpgc-csh-tg,jpgc-ffw,jpgc-fifo,jpgc-function,jpgc-mt,jpgc-olap,jpgc-ordinatecontroller,jpgc-perfmon,jpgc-senseight,jpgc-synthesis
-
       - name: Run JMeter scripts
         run: apache-jmeter-5.5/bin/jmeter -n -t ForgeAPI_v4.jmx -l results.jtl
 
